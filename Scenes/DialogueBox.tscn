@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://dx875iegd8o6h"]
+
+[ext_resource type="Script" uid="uid://bkqiwoie4swir" path="res://Scenes/dialogue_box.gd" id="1_m4115"]
+
+[node name="DialogueBox" type="CanvasLayer" unique_id=1952344507]
+script = ExtResource("1_m4115")
+
+[node name="TextTimer" type="Timer" parent="." unique_id=370689086]
+wait_time = 0.05
+
+[node name="UIAnchorWrapper" type="Control" parent="." unique_id=1197270778]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="UIAnchorWrapper" unique_id=1398445732]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 76.0
+offset_top = -110.32501
+offset_right = -78.0
+offset_bottom = -10.324982
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="DialogueLabel" type="RichTextLabel" parent="UIAnchorWrapper/Panel" unique_id=862454996]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scroll_active = false
+
+[node name="ChoiceContainer" type="HBoxContainer" parent="UIAnchorWrapper/Panel" unique_id=2130680026]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -70.0
+offset_top = -31.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="YesButton" type="Button" parent="UIAnchorWrapper/Panel/ChoiceContainer" unique_id=1569464534]
+layout_mode = 2
+text = "Yes"
+
+[node name="NoButton" type="Button" parent="UIAnchorWrapper/Panel/ChoiceContainer" unique_id=1517488342]
+layout_mode = 2
+text = "No"
