@@ -62,7 +62,7 @@ script = ExtResource("1_fo5tq")
 
 [node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=1912163789]
 position = Vector2(-2, 0)
-scale = Vector2(1.1, 1.1)
+scale = Vector2(0.895, 0.895)
 sprite_frames = SubResource("SpriteFrames_fo5tq")
 frame = 1
 frame_progress = 0.015813561
