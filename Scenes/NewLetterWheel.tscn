@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://birj55c1u1nyq"]
+
+[ext_resource type="Script" uid="uid://drcbgkloq4laa" path="res://Scenes/new_letter_wheel.gd" id="1_dek30"]
+
+[node name="NewLetterWheel" type="CanvasLayer" unique_id=572675228]
+script = ExtResource("1_dek30")
+
+[node name="BackgroundTexture" type="TextureRect" parent="." unique_id=927941444]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WheelInterface" type="Control" parent="." unique_id=1581606951]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LettersContainer" type="Node2D" parent="WheelInterface" unique_id=1767919563]
+
+[node name="WordSlotsContainer" type="HBoxContainer" parent="WheelInterface" unique_id=1935423835]
+layout_mode = 0
+offset_left = -394.5
+offset_top = -240.0
+offset_right = 434.5
+offset_bottom = -200.0
+alignment = 1
+
+[node name="RoundLabel" type="Label" parent="WheelInterface" unique_id=1711803380]
+layout_mode = 0
+offset_left = -394.5
+offset_top = -240.0
+offset_right = -354.5
+offset_bottom = -217.0

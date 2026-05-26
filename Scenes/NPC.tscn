@@ -1,8 +1,58 @@
 [gd_scene format=3 uid="uid://2ks4yvrj1mjo"]
 
 [ext_resource type="Script" uid="uid://cdn6n0hfacm01" path="res://Scripts/npc.gd" id="1_fo5tq"]
-[ext_resource type="Texture2D" uid="uid://bfawfxshxxwtd" path="res://Images/cfbf9a072612e86ec8fb8a8201f31251.jpg" id="2_xs5w8"]
+[ext_resource type="Texture2D" uid="uid://b5s3ny7cyoe1i" path="res://Images/TheFather.png" id="2_xs5w8"]
 [ext_resource type="Texture2D" uid="uid://cnvfg1mi5lpq1" path="res://Images/interact_e.png" id="3_xs5w8"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7fgga"]
+atlas = ExtResource("2_xs5w8")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_17t5b"]
+atlas = ExtResource("2_xs5w8")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_faxwx"]
+atlas = ExtResource("2_xs5w8")
+region = Rect2(0, 64, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fcq3e"]
+atlas = ExtResource("2_xs5w8")
+region = Rect2(64, 64, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m0lvl"]
+atlas = ExtResource("2_xs5w8")
+region = Rect2(0, 128, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xdsde"]
+atlas = ExtResource("2_xs5w8")
+region = Rect2(64, 128, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fo5tq"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7fgga")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_17t5b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_faxwx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fcq3e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m0lvl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xdsde")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_7fgga"]
 radius = 60.0
@@ -10,9 +60,12 @@ radius = 60.0
 [node name="NPC" type="Node2D" unique_id=1331218202]
 script = ExtResource("1_fo5tq")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=29758720]
-scale = Vector2(0.05, 0.05)
-texture = ExtResource("2_xs5w8")
+[node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=1912163789]
+position = Vector2(-2, 0)
+scale = Vector2(1.1, 1.1)
+sprite_frames = SubResource("SpriteFrames_fo5tq")
+frame = 1
+frame_progress = 0.015813561
 
 [node name="InteractionArea" type="Area2D" parent="." unique_id=430540983]
 
@@ -20,6 +73,6 @@ texture = ExtResource("2_xs5w8")
 shape = SubResource("CircleShape2D_7fgga")
 
 [node name="InteractPrompt" type="Sprite2D" parent="." unique_id=1578705435]
-position = Vector2(0, -40)
+position = Vector2(0, -45)
 scale = Vector2(1.5, 1.5)
 texture = ExtResource("3_xs5w8")

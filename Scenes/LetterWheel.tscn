@@ -4,6 +4,7 @@
 
 [node name="LetterWheel" type="CanvasLayer" unique_id=146037861]
 script = ExtResource("1_g6fon")
+detection_radius = 20.0
 
 [node name="BackgroundTexture" type="TextureRect" parent="." unique_id=270211582]
 anchors_preset = 15

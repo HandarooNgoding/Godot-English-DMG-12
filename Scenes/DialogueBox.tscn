@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://dx875iegd8o6h"]
 
 [ext_resource type="Script" uid="uid://bkqiwoie4swir" path="res://Scenes/dialogue_box.gd" id="1_m4115"]
+[ext_resource type="FontFile" uid="uid://bu0aveovk3bb3" path="res://Fonts/slkscr.ttf" id="2_mjj0w"]
+[ext_resource type="FontFile" uid="uid://ccmh5dqtphy76" path="res://Fonts/slkscrb.ttf" id="3_in0bf"]
 
 [node name="DialogueBox" type="CanvasLayer" unique_id=1952344507]
 script = ExtResource("1_m4115")
@@ -36,6 +38,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("2_mjj0w")
+theme_override_fonts/bold_font = ExtResource("3_in0bf")
 scroll_active = false
 
 [node name="ChoiceContainer" type="HBoxContainer" parent="UIAnchorWrapper/Panel" unique_id=2130680026]
@@ -52,8 +56,10 @@ grow_vertical = 0
 
 [node name="YesButton" type="Button" parent="UIAnchorWrapper/Panel/ChoiceContainer" unique_id=1569464534]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_mjj0w")
 text = "Yes"
 
 [node name="NoButton" type="Button" parent="UIAnchorWrapper/Panel/ChoiceContainer" unique_id=1517488342]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_mjj0w")
 text = "No"

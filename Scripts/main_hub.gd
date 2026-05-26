@@ -4,7 +4,7 @@ extends Node2D
 
 # Preload our interface layout assets directly from the filesystem
 var dialogue_scene = preload("res://Scenes/DialogueBox.tscn")
-var letter_wheel_scene = preload("res://Scenes/LetterWheel.tscn")
+var letter_wheel_scene = preload("res://Scenes/NewLetterWheel.tscn")
 
 var active_dialogue_instance: CanvasLayer = null
 var active_puzzle_instance: CanvasLayer = null

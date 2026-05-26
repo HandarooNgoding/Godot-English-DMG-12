@@ -4,7 +4,6 @@ extends CanvasLayer
 @onready var background_texture_node: TextureRect = $BackgroundTexture
 @onready var wheel_interface: Control = $WheelInterface
 @onready var letters_container: Node2D = $WheelInterface/LettersContainer
-@onready var connection_line: Line2D = $WheelInterface/ConnectionLine
 @onready var word_slots_container: HBoxContainer = $WheelInterface/WordSlotsContainer
 @onready var round_label: Label = $WheelInterface/RoundLabel
 
@@ -28,11 +27,13 @@ var used_words_this_run: Array[String] = []
 var consecutive_failures: int = 0
 var active_hints: Dictionary = {} 
 
-# BULLETPROOF: Tracks the exact instantiated Letter Nodes so we can grab their absolute screen positions
-var instantiated_letter_nodes: Array[Node2D] = []
+# Math centers tracked natively relative to LettersContainer (0,0)
+var letter_positions: Array[Vector2] = []
+var current_mouse_local: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
-	connection_line.clear_points()
+	# Enable processing to allow real-time redrawing of selection lines
+	set_process(true)
 
 func initialize_game(words: Array[String], background_img: Texture2D, per_round: int = 3, total_rounds: int = 3) -> void:
 	master_glossary = words
@@ -55,7 +56,8 @@ func load_round(round_number: int) -> void:
 	discovered_words.clear()
 	active_hints.clear() 
 	consecutive_failures = 0 
-	connection_line.clear_points()
+	selected_indices.clear()
+	letters_container.queue_redraw()
 	
 	var available_words: Array[String] = []
 	for word in master_glossary:
@@ -106,15 +108,20 @@ func generate_wheel(word: String) -> void:
 	for child in letters_container.get_children():
 		child.queue_free()
 		
-	instantiated_letter_nodes.clear()
+	letter_positions.clear()
 	var letter_count = word.length()
 	if letter_count == 0: return
 	
 	var angle_step = (2 * PI) / letter_count
 	
+	# Connect the container's custom draw call back to this script handler
+	if not letters_container.is_connected("draw", Callable(self, "_on_letters_container_draw")):
+		letters_container.connect("draw", Callable(self, "_on_letters_container_draw"))
+	
 	for i in range(letter_count):
 		var angle = i * angle_step - (PI / 2)
 		var letter_pos = Vector2(cos(angle), sin(angle)) * radius
+		letter_positions.append(letter_pos)
 		
 		var letter_node = Node2D.new()
 		letter_node.position = letter_pos
@@ -127,8 +134,10 @@ func generate_wheel(word: String) -> void:
 		var label = letter_scene.get_node("Label") as Label
 		label.text = word[i]
 		
-		# Track this node references explicitly
-		instantiated_letter_nodes.append(letter_node)
+		# FORCE CENTER alignment inside the child scene container
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.position = -label.size / 2.0
 
 func setup_word_slots() -> void:
 	for child in word_slots_container.get_children():
@@ -173,7 +182,9 @@ func deploy_single_letter_hint() -> void:
 
 func _process(_delta: float) -> void:
 	if is_dragging:
-		update_mouse_line()
+		# Use local canvas coordinates to calculate dragging positions
+		current_mouse_local = letters_container.get_local_mouse_position()
+		letters_container.queue_redraw()
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
@@ -189,44 +200,29 @@ func _input(event: InputEvent) -> void:
 		check_letter_detection(letters_container.get_local_mouse_position())
 
 func check_letter_detection(local_mouse_pos: Vector2) -> void:
-	for i in range(instantiated_letter_nodes.size()):
+	for i in range(letter_positions.size()):
 		if selected_indices.has(i): continue
 		
-		var letter_node = instantiated_letter_nodes[i]
-		if is_instance_valid(letter_node):
-			if local_mouse_pos.distance_to(letter_node.position) < detection_radius:
-				select_letter(i, letter_node.position)
-				break
+		if local_mouse_pos.distance_to(letter_positions[i]) < detection_radius:
+			selected_indices.append(i)
+			letters_container.queue_redraw()
+			break
 
-func select_letter(index: int, letter_local_pos: Vector2) -> void:
-	selected_indices.append(index)
-	
-	var target_pos = letter_local_pos
-	var parent_node = instantiated_letter_nodes[index]
-	
-	# DYNAMIC BOX SNAPPING:
-	# Looks inside your custom instantiated LetterNode scene to find the UI bounding box container.
-	if is_instance_valid(parent_node) and parent_node.get_child_count() > 0:
-		var letter_scene_root = parent_node.get_child(0)
-		if letter_scene_root:
-			var label_node = letter_scene_root.get_node_or_null("Label") as Label
-			if label_node:
-				# Adds half the size of the Label control panel to offset the line vertex right into the center 
-				var true_center_offset = label_node.position + (label_node.size / 2.0)
-				target_pos += true_center_offset
-
-	# Convert our perfectly centered coordinate space position safely to your line layer
-	var exact_line_pos = connection_line.to_local(letters_container.to_global(target_pos))
-	connection_line.add_point(exact_line_pos)
-
-func update_mouse_line() -> void:
-	if selected_indices.size() > 0:
-		var line_localized_mouse = connection_line.get_local_mouse_position()
+# --- Native Render Snapping Engine ---
+func _on_letters_container_draw() -> void:
+	if selected_indices.size() == 0:
+		return
 		
-		if connection_line.points.size() > selected_indices.size():
-			connection_line.set_point_position(connection_line.points.size() - 1, line_localized_mouse)
-		else:
-			connection_line.add_point(line_localized_mouse)
+	# Draw permanent snapped paths between confirmed index choices
+	for i in range(selected_indices.size() - 1):
+		var start = letter_positions[selected_indices[i]]
+		var end = letter_positions[selected_indices[i + 1]]
+		letters_container.draw_line(start, end, Color.WHITE, 10.0, true)
+		
+	# Draw active tracking line running from the last snapped center directly to your cursor
+	if is_dragging:
+		var last_letter_center = letter_positions[selected_indices[-1]]
+		letters_container.draw_line(last_letter_center, current_mouse_local, Color.WHITE, 10.0, true)
 
 func get_selected_string() -> String:
 	var result = ""
@@ -259,7 +255,8 @@ func finish_word_selection() -> void:
 				deploy_single_letter_hint()
 			
 	selected_indices.clear()
-	connection_line.clear_points()
+	letters_container.queue_redraw()
 
 	if round_cleared:
 		advance_round()
+		
