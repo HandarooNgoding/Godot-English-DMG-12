@@ -4,9 +4,9 @@ extends CanvasLayer
 @onready var background_texture_node: TextureRect = $BackgroundTexture
 @onready var wheel_interface: Control = $WheelInterface
 @onready var letters_container: Node2D = $WheelInterface/LettersContainer
-@onready var connection_line: Line2D = $WheelInterface/ConnectionLine
 @onready var word_slots_container: HBoxContainer = $WheelInterface/WordSlotsContainer
 @onready var round_label: Label = $WheelInterface/RoundLabel
+@onready var exit_button: Button = $WheelInterface/ExitButton
 
 # --- Configuration Constants ---
 @export var radius: float = 120.0
@@ -28,11 +28,15 @@ var used_words_this_run: Array[String] = []
 var consecutive_failures: int = 0
 var active_hints: Dictionary = {} 
 
-# BULLETPROOF: Tracks the exact instantiated Letter Nodes so we can grab their absolute screen positions
-var instantiated_letter_nodes: Array[Node2D] = []
+# Math centers tracked natively relative to LettersContainer (0,0)
+var letter_positions: Array[Vector2] = []
+var current_mouse_local: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
-	connection_line.clear_points()
+	set_process(true)
+	if exit_button:
+		if not exit_button.pressed.is_connected(close_minigame):
+			exit_button.pressed.connect(close_minigame)
 
 func initialize_game(words: Array[String], background_img: Texture2D, per_round: int = 3, total_rounds: int = 3) -> void:
 	master_glossary = words
@@ -55,7 +59,8 @@ func load_round(round_number: int) -> void:
 	discovered_words.clear()
 	active_hints.clear() 
 	consecutive_failures = 0 
-	connection_line.clear_points()
+	selected_indices.clear()
+	letters_container.queue_redraw()
 	
 	var available_words: Array[String] = []
 	for word in master_glossary:
@@ -79,18 +84,18 @@ func load_round(round_number: int) -> void:
 	generate_wheel(current_word)
 	setup_word_slots()
 
+# FIXED: Turned into an async function to allow a delay before starting the next round
 func advance_round() -> void:
 	current_round += 1
 	if current_round <= max_rounds:
 		load_round(current_round)
 	else:
+		# FIXED: Gives a tiny breathing room celebration pause before wiping the scene
+		await get_tree().create_timer(1.0).timeout
 		trigger_victory()
 
 func trigger_victory() -> void:
-	var hub = get_parent()
-	if hub and hub.has_method("return_to_overworld"):
-		hub.return_to_overworld()
-	queue_free()
+	close_minigame()
 
 func extract_unique_letters(pool: Array[String]) -> String:
 	var unique_chars = {}
@@ -106,15 +111,19 @@ func generate_wheel(word: String) -> void:
 	for child in letters_container.get_children():
 		child.queue_free()
 		
-	instantiated_letter_nodes.clear()
+	letter_positions.clear()
 	var letter_count = word.length()
 	if letter_count == 0: return
 	
 	var angle_step = (2 * PI) / letter_count
 	
+	if not letters_container.is_connected("draw", Callable(self, "_on_letters_container_draw")):
+		letters_container.connect("draw", Callable(self, "_on_letters_container_draw"))
+	
 	for i in range(letter_count):
 		var angle = i * angle_step - (PI / 2)
 		var letter_pos = Vector2(cos(angle), sin(angle)) * radius
+		letter_positions.append(letter_pos)
 		
 		var letter_node = Node2D.new()
 		letter_node.position = letter_pos
@@ -127,8 +136,9 @@ func generate_wheel(word: String) -> void:
 		var label = letter_scene.get_node("Label") as Label
 		label.text = word[i]
 		
-		# Track this node references explicitly
-		instantiated_letter_nodes.append(letter_node)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.position = -label.size / 2.0
 
 func setup_word_slots() -> void:
 	for child in word_slots_container.get_children():
@@ -173,12 +183,19 @@ func deploy_single_letter_hint() -> void:
 
 func _process(_delta: float) -> void:
 	if is_dragging:
-		update_mouse_line()
+		current_mouse_local = letters_container.get_local_mouse_position()
+		letters_container.queue_redraw()
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+		close_minigame()
+		return
+
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
+				if exit_button and exit_button.get_global_rect().has_point(event.global_position):
+					return
 				is_dragging = true
 				check_letter_detection(letters_container.get_local_mouse_position())
 			else:
@@ -189,44 +206,26 @@ func _input(event: InputEvent) -> void:
 		check_letter_detection(letters_container.get_local_mouse_position())
 
 func check_letter_detection(local_mouse_pos: Vector2) -> void:
-	for i in range(instantiated_letter_nodes.size()):
+	for i in range(letter_positions.size()):
 		if selected_indices.has(i): continue
 		
-		var letter_node = instantiated_letter_nodes[i]
-		if is_instance_valid(letter_node):
-			if local_mouse_pos.distance_to(letter_node.position) < detection_radius:
-				select_letter(i, letter_node.position)
-				break
+		if local_mouse_pos.distance_to(letter_positions[i]) < detection_radius:
+			selected_indices.append(i)
+			letters_container.queue_redraw()
+			break
 
-func select_letter(index: int, letter_local_pos: Vector2) -> void:
-	selected_indices.append(index)
-	
-	var target_pos = letter_local_pos
-	var parent_node = instantiated_letter_nodes[index]
-	
-	# DYNAMIC BOX SNAPPING:
-	# Looks inside your custom instantiated LetterNode scene to find the UI bounding box container.
-	if is_instance_valid(parent_node) and parent_node.get_child_count() > 0:
-		var letter_scene_root = parent_node.get_child(0)
-		if letter_scene_root:
-			var label_node = letter_scene_root.get_node_or_null("Label") as Label
-			if label_node:
-				# Adds half the size of the Label control panel to offset the line vertex right into the center 
-				var true_center_offset = label_node.position + (label_node.size / 2.0)
-				target_pos += true_center_offset
-
-	# Convert our perfectly centered coordinate space position safely to your line layer
-	var exact_line_pos = connection_line.to_local(letters_container.to_global(target_pos))
-	connection_line.add_point(exact_line_pos)
-
-func update_mouse_line() -> void:
-	if selected_indices.size() > 0:
-		var line_localized_mouse = connection_line.get_local_mouse_position()
+func _on_letters_container_draw() -> void:
+	if selected_indices.size() == 0:
+		return
 		
-		if connection_line.points.size() > selected_indices.size():
-			connection_line.set_point_position(connection_line.points.size() - 1, line_localized_mouse)
-		else:
-			connection_line.add_point(line_localized_mouse)
+	for i in range(selected_indices.size() - 1):
+		var start = letter_positions[selected_indices[i]]
+		var end = letter_positions[selected_indices[i + 1]]
+		letters_container.draw_line(start, end, Color.WHITE, 10.0, true)
+		
+	if is_dragging:
+		var last_letter_center = letter_positions[selected_indices[-1]]
+		letters_container.draw_line(last_letter_center, current_mouse_local, Color.WHITE, 10.0, true)
 
 func get_selected_string() -> String:
 	var result = ""
@@ -234,6 +233,7 @@ func get_selected_string() -> String:
 		result += current_word[idx]
 	return result
 
+# FIXED: Turned into a coroutine via await to handle game round delays seamlessly
 func finish_word_selection() -> void:
 	var final_word = get_selected_string()
 	var round_cleared: bool = false
@@ -259,7 +259,16 @@ func finish_word_selection() -> void:
 				deploy_single_letter_hint()
 			
 	selected_indices.clear()
-	connection_line.clear_points()
+	letters_container.queue_redraw()
 
 	if round_cleared:
+		# FIXED: Pause exactly 1 second while the full green text is displayed on the screen
+		await get_tree().create_timer(1.0).timeout
 		advance_round()
+
+func close_minigame() -> void:
+	var hub = get_parent()
+	if hub and hub.has_method("return_to_overworld"):
+		hub.return_to_overworld()
+	queue_free()
+	

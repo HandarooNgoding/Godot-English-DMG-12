@@ -6,7 +6,6 @@ extends CanvasLayer
 @onready var letters_container: Node2D = $WheelInterface/LettersContainer
 @onready var word_slots_container: HBoxContainer = $WheelInterface/WordSlotsContainer
 @onready var round_label: Label = $WheelInterface/RoundLabel
-# NEW REFERENCE: Hooking up your UI layer's close button
 @onready var exit_button: Button = $WheelInterface/ExitButton
 
 # --- Configuration Constants ---
@@ -28,6 +27,9 @@ var used_words_this_run: Array[String] = []
 
 var consecutive_failures: int = 0
 var active_hints: Dictionary = {} 
+
+# BULLETPROOF SAFEGUARD: Tracks active round-clear timers to prevent stacking
+var active_clear_tween: Tween = null
 
 # Math centers tracked natively relative to LettersContainer (0,0)
 var letter_positions: Array[Vector2] = []
@@ -192,7 +194,7 @@ func _process(_delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	# KEYBOARD ESCAPE INTERCEPT: Shuts down minigame instantly on ESC click
-	if event.is_action_pressed("cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 		close_minigame()
 		return
 
@@ -270,11 +272,24 @@ func finish_word_selection() -> void:
 	letters_container.queue_redraw()
 
 	if round_cleared:
-		advance_round()
+		# KILL ANY EXISTING STANDBY TIMERS IMMEDIATELY
+		if active_clear_tween and active_clear_tween.is_valid():
+			active_clear_tween.kill()
+			
+		# CREATE A FRESH, SINGLE 1.0 SECOND DELAY
+		active_clear_tween = create_tween()
+		
+		# This cleanly creates a 1.0 second pause, then safely triggers advance_round
+		active_clear_tween.tween_callback(advance_round).set_delay(0.5)
 
-# NEW GENERAL CLOSING HANDLER: Gracefully returns to gameplay layer
+# GENERAL CLOSING HANDLER: Gracefully returns to gameplay layer
 func close_minigame() -> void:
+	# Ensure running transition tweens are cleared when exiting mid-game
+	if active_clear_tween and active_clear_tween.is_valid():
+		active_clear_tween.kill()
+		
 	var hub = get_parent()
 	if hub and hub.has_method("return_to_overworld"):
 		hub.return_to_overworld()
 	queue_free()
+	

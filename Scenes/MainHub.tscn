@@ -1820,7 +1820,7 @@ script = ExtResource("1_q0wjt")
 
 [node name="Player" parent="." unique_id=1375910344 instance=ExtResource("1_eypgd")]
 z_index = 2
-position = Vector2(364, 359)
+position = Vector2(241, 192)
 speed = 175.0
 
 [node name="Mother" parent="." unique_id=1331218202 instance=ExtResource("2_q0wjt")]
