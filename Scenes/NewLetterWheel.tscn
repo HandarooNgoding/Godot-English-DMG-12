@@ -1,6 +1,33 @@
 [gd_scene format=3 uid="uid://birj55c1u1nyq"]
 
 [ext_resource type="Script" uid="uid://drcbgkloq4laa" path="res://Scenes/new_letter_wheel.gd" id="1_dek30"]
+[ext_resource type="Texture2D" uid="uid://djygxvogw0k7u" path="res://Images/interact_x.png" id="2_s4cja"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r30hn"]
+bg_color = Color(1, 1, 1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ibpt3"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0.6, 0.6, 0.6, 0)
+expand_margin_left = 4.0
+expand_margin_top = 4.0
+expand_margin_right = 4.0
+expand_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s4cja"]
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+bg_color = Color(0.58431375, 0.6156863, 0.5294118, 0)
+border_color = Color(0.8, 0.8, 0.8, 0)
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
 
 [node name="NewLetterWheel" type="CanvasLayer" unique_id=572675228]
 script = ExtResource("1_dek30")
@@ -42,3 +69,29 @@ offset_left = -394.5
 offset_top = -240.0
 offset_right = -354.5
 offset_bottom = -217.0
+
+[node name="ExitButton" type="Button" parent="WheelInterface" unique_id=1496371429]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -373.5
+offset_top = -222.0
+offset_right = -349.5
+offset_bottom = -198.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(2, 2)
+pivot_offset = Vector2(0.5, 0.5)
+pivot_offset_ratio = Vector2(0.5, 0.5)
+theme_override_constants/outline_size = 0
+theme_override_constants/h_separation = 4
+theme_override_constants/line_spacing = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_r30hn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ibpt3")
+theme_override_styles/hover = SubResource("StyleBoxFlat_s4cja")
+icon = ExtResource("2_s4cja")
+icon_alignment = 1
+expand_icon = true

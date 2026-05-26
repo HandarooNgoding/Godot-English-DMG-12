@@ -6,6 +6,8 @@ extends CanvasLayer
 @onready var letters_container: Node2D = $WheelInterface/LettersContainer
 @onready var word_slots_container: HBoxContainer = $WheelInterface/WordSlotsContainer
 @onready var round_label: Label = $WheelInterface/RoundLabel
+# NEW REFERENCE: Hooking up your UI layer's close button
+@onready var exit_button: Button = $WheelInterface/ExitButton
 
 # --- Configuration Constants ---
 @export var radius: float = 120.0
@@ -34,6 +36,11 @@ var current_mouse_local: Vector2 = Vector2.ZERO
 func _ready() -> void:
 	# Enable processing to allow real-time redrawing of selection lines
 	set_process(true)
+	
+	# Connect your visual close button's pressed signal cleanly at runtime
+	if exit_button:
+		if not exit_button.pressed.is_connected(close_minigame):
+			exit_button.pressed.connect(close_minigame)
 
 func initialize_game(words: Array[String], background_img: Texture2D, per_round: int = 3, total_rounds: int = 3) -> void:
 	master_glossary = words
@@ -89,10 +96,7 @@ func advance_round() -> void:
 		trigger_victory()
 
 func trigger_victory() -> void:
-	var hub = get_parent()
-	if hub and hub.has_method("return_to_overworld"):
-		hub.return_to_overworld()
-	queue_free()
+	close_minigame()
 
 func extract_unique_letters(pool: Array[String]) -> String:
 	var unique_chars = {}
@@ -187,9 +191,17 @@ func _process(_delta: float) -> void:
 		letters_container.queue_redraw()
 
 func _input(event: InputEvent) -> void:
+	# KEYBOARD ESCAPE INTERCEPT: Shuts down minigame instantly on ESC click
+	if event.is_action_pressed("cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+		close_minigame()
+		return
+
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT:
 			if event.pressed:
+				# Prevent dragging lines if the player is simply clicking the Exit button area
+				if exit_button and exit_button.get_global_rect().has_point(event.global_position):
+					return
 				is_dragging = true
 				check_letter_detection(letters_container.get_local_mouse_position())
 			else:
@@ -259,4 +271,10 @@ func finish_word_selection() -> void:
 
 	if round_cleared:
 		advance_round()
-		
+
+# NEW GENERAL CLOSING HANDLER: Gracefully returns to gameplay layer
+func close_minigame() -> void:
+	var hub = get_parent()
+	if hub and hub.has_method("return_to_overworld"):
+		hub.return_to_overworld()
+	queue_free()
