@@ -11,6 +11,9 @@ extends CanvasLayer
 # --- Configuration Constants ---
 @export var radius: float = 120.0
 @export var detection_radius: float = 40.0 
+@export var draw_wheel_background: bool = true
+@export var wheel_background_radius: float = 160.0 # Slightly larger than the letter radius
+@export var wheel_background_color: Color = Color(0, 0, 0, 0.4) # Semi-transparent dark gray
 
 var words_per_round: int = 3 
 var max_rounds: int = 3 
@@ -215,14 +218,21 @@ func check_letter_detection(local_mouse_pos: Vector2) -> void:
 			break
 
 func _on_letters_container_draw() -> void:
+	# 1. DRAW THE CIRCLE BACKGROUND FIRST (so it renders behind everything else)
+	if draw_wheel_background:
+		# Draws a filled circle centered at (0,0) relative to LettersContainer
+		letters_container.draw_circle(Vector2.ZERO, wheel_background_radius, wheel_background_color)
+		
 	if selected_indices.size() == 0:
 		return
 		
+	# 2. Draw permanent snapped paths between confirmed index choices
 	for i in range(selected_indices.size() - 1):
 		var start = letter_positions[selected_indices[i]]
 		var end = letter_positions[selected_indices[i + 1]]
 		letters_container.draw_line(start, end, Color.WHITE, 10.0, true)
 		
+	# 3. Draw active tracking line running from the last snapped center directly to your cursor
 	if is_dragging:
 		var last_letter_center = letter_positions[selected_indices[-1]]
 		letters_container.draw_line(last_letter_center, current_mouse_local, Color.WHITE, 10.0, true)

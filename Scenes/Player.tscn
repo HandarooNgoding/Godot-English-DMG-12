@@ -120,7 +120,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle_down",
-"speed": 5.0
+"speed": 2.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -137,7 +137,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle_right",
-"speed": 5.0
+"speed": 2.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -154,7 +154,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle_up",
-"speed": 5.0
+"speed": 2.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -219,8 +219,8 @@ shape = SubResource("RectangleShape2D_dewec")
 position = Vector2(-1, 1)
 scale = Vector2(0.725, 0.725)
 sprite_frames = SubResource("SpriteFrames_rpqav")
-animation = &"walk_right"
-frame_progress = 0.16220346
+animation = &"idle_up"
+frame_progress = 0.24611765
 speed_scale = 0.89
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1027770846]

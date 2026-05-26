@@ -5,10 +5,11 @@
 [ext_resource type="PackedScene" uid="uid://2ks4yvrj1mjo" path="res://Scenes/NPC.tscn" id="2_q0wjt"]
 [ext_resource type="PackedScene" uid="uid://blhvqwpnxyqh4" path="res://Scenes/LetterWheel.tscn" id="4_5pwdv"]
 [ext_resource type="Texture2D" uid="uid://c0uslwhsls4sd" path="res://Images/TheMother.png" id="4_hcjkg"]
-[ext_resource type="Texture2D" uid="uid://5207y3p7p44i" path="res://Images/background_room.png" id="5_hcjkg"]
+[ext_resource type="Texture2D" uid="uid://c1flypt6yt8mu" path="res://Images/BGdapur.png" id="5_a62xv"]
 [ext_resource type="Texture2D" uid="uid://c4bgtqubr0e0o" path="res://Images/InteriorTilesLITE.png" id="5_l8vcx"]
 [ext_resource type="Texture2D" uid="uid://b5s3ny7cyoe1i" path="res://Images/TheFather.png" id="6_g5ubj"]
-[ext_resource type="Texture2D" uid="uid://pmpl4jdsdqyc" path="res://Images/Airbrush-image-extender.jpeg" id="7_g5ubj"]
+[ext_resource type="Texture2D" uid="uid://boseyu8ajv3iv" path="res://Images/BGgarasi.png" id="7_qj5f4"]
+[ext_resource type="Texture2D" uid="uid://dii6rxn7ca5x5" path="res://Images/BGkamar.png" id="9_q1l7o"]
 [ext_resource type="Texture2D" uid="uid://dt1fcd2ivawpw" path="res://Images/TheSister.png" id="10_g5ubj"]
 [ext_resource type="Texture2D" uid="uid://4pna8525warx" path="res://Images/carGarage.png" id="11_thksv"]
 
@@ -1829,20 +1830,21 @@ position = Vector2(358, 182)
 npc_name = "Mom"
 quest_words = Array[String](["DOG", "JOG", "LOG", "SAD", "MAD", "BAD", "CAT", "BAT", "HAT"])
 npc_animations = SubResource("SpriteFrames_f57cu")
-quest_background_image = ExtResource("5_hcjkg")
+quest_background_image = ExtResource("5_a62xv")
 dialogue_text = "Feast your eyes! I am NPC 1, the keeper of the fabled quest 1... Would you like to challenge me?"
 
 [node name="Father" parent="." unique_id=395904926 instance=ExtResource("2_q0wjt")]
 z_index = 1
 position = Vector2(559, 384)
 npc_animations = SubResource("SpriteFrames_qp3sb")
-quest_background_image = ExtResource("7_g5ubj")
+quest_background_image = ExtResource("7_qj5f4")
 dialogue_text = "Halt! You face NPC 2, the guardian of quest 2... Would you like to challenge me, Mortal?"
 
 [node name="Sister" parent="." unique_id=2016778169 instance=ExtResource("2_q0wjt")]
 z_index = 1
 position = Vector2(558, 208)
 npc_animations = SubResource("SpriteFrames_ec7uc")
+quest_background_image = ExtResource("9_q1l7o")
 
 [node name="LetterWheel" parent="." unique_id=1572874060 instance=ExtResource("4_5pwdv")]
 

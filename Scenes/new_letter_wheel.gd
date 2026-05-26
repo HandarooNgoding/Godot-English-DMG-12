@@ -12,6 +12,11 @@ extends CanvasLayer
 @export var radius: float = 120.0
 @export var detection_radius: float = 40.0 
 
+# INTEGRATED: Circle background rendering settings
+@export var draw_wheel_background: bool = true
+@export var wheel_background_radius: float = 160.0
+@export var wheel_background_color: Color = Color(0, 0, 0, 0.4) # Semi-transparent dark overlay
+
 var words_per_round: int = 3 
 var max_rounds: int = 3 
 var master_glossary: Array[String] = []
@@ -224,6 +229,10 @@ func check_letter_detection(local_mouse_pos: Vector2) -> void:
 
 # --- Native Render Snapping Engine ---
 func _on_letters_container_draw() -> void:
+	# INTEGRATED: Renders background circle layer first so it defaults beneath selections
+	if draw_wheel_background:
+		letters_container.draw_circle(Vector2.ZERO, wheel_background_radius, wheel_background_color)
+
 	if selected_indices.size() == 0:
 		return
 		
