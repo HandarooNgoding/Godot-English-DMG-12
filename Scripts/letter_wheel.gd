@@ -11,13 +11,13 @@ extends CanvasLayer
 # --- Configuration Constants ---
 @export var radius: float = 120.0
 @export var detection_radius: float = 40.0 
-@export var draw_wheel_background: bool = true
-@export var wheel_background_radius: float = 160.0 # Slightly larger than the letter radius
-@export var wheel_background_color: Color = Color(0, 0, 0, 0.4) # Semi-transparent dark gray
 
-var words_per_round: int = 3 
-var max_rounds: int = 3 
-var master_glossary: Array[String] = []
+# Circle background rendering settings
+@export var draw_wheel_background: bool = true
+@export var wheel_background_radius: float = 160.0
+@export var wheel_background_color: Color = Color(0, 0, 0, 0.4)
+
+var max_rounds: int = 2 
 
 # --- Gameplay State Parameters ---
 var current_round: int = 1
@@ -26,89 +26,86 @@ var current_word: String = ""
 var selected_indices: Array[int] = [] 
 var is_dragging: bool = false
 var discovered_words: Array[String] = [] 
-var used_words_this_run: Array[String] = [] 
+
+# Tracks which character launched this mini-game ("Mom", "Dad", "Sibling")
+var current_character_id: String = ""
 
 var consecutive_failures: int = 0
 var active_hints: Dictionary = {} 
 
-# Math centers tracked natively relative to LettersContainer (0,0)
+# Tracks active round-clear timers to prevent stacking
+var active_clear_tween: Tween = null
+
+# Math centers tracked natively relative to LettersContainer
 var letter_positions: Array[Vector2] = []
 var current_mouse_local: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	set_process(true)
-	if exit_button:
-		if not exit_button.pressed.is_connected(close_minigame):
-			exit_button.pressed.connect(close_minigame)
-
-func initialize_game(words: Array[String], background_img: Texture2D, per_round: int = 3, total_rounds: int = 3) -> void:
-	master_glossary = words
-	words_per_round = per_round
-	max_rounds = total_rounds
 	
+	if exit_button and not exit_button.pressed.is_connected(close_minigame):
+		exit_button.pressed.connect(close_minigame)
+
+func initialize_game(_words: Array[String], background_img: Texture2D, _per_round: int = 3, _total_rounds: int = 3) -> void:
 	if background_img and background_texture_node:
 		background_texture_node.texture = background_img
 	else:
 		background_texture_node.texture = null
 		
 	current_round = 1
-	used_words_this_run.clear()
 	load_round(current_round)
 
 func load_round(round_number: int) -> void:
+	var quest_data = QuestManager.quests.get(current_character_id)
+	if not quest_data or not quest_data.has("stages") or quest_data["stages"].size() == 0:
+		print("Error: Missing stage configurations for character reference: ", current_character_id)
+		close_minigame()
+		return
+		
+	var stage_index = round_number - 1
+	max_rounds = quest_data["stages"].size()
+	
 	if round_label:
-		round_label.text = "Round " + str(round_number) + " / " + str(max_rounds)
+		round_label.text = "Stage " + str(round_number) + " / " + str(max_rounds)
 		
 	discovered_words.clear()
 	active_hints.clear() 
 	consecutive_failures = 0 
 	selected_indices.clear()
-	letters_container.queue_redraw()
 	
-	var available_words: Array[String] = []
-	for word in master_glossary:
-		var upper_word = word.strip_edges().to_upper()
-		if not used_words_this_run.has(upper_word):
-			available_words.append(upper_word)
-			
-	if available_words.size() < words_per_round:
-		used_words_this_run.clear()
-		available_words = master_glossary.duplicate()
-		
-	available_words.shuffle()
+	var current_stage_data = quest_data["stages"][stage_index]
 	
 	word_pool.clear()
-	for i in range(min(words_per_round, available_words.size())):
-		var chosen_word = available_words[i]
-		word_pool.append(chosen_word)
-		used_words_this_run.append(chosen_word)
+	for word in current_stage_data["words"]:
+		word_pool.append(word.to_upper())
 		
-	current_word = extract_unique_letters(word_pool)
+	current_word = current_stage_data["letters"].to_upper()
+	
+	var hub = get_parent()
+	if hub and "active_dialogue_instance" in hub and hub.active_dialogue_instance != null:
+		var stage_text_prompt = current_stage_data.get("dialogue", "Solve the word puzzle!")
+		if hub.active_dialogue_instance.has_method("show_puzzle_hint"):
+			hub.active_dialogue_instance.show_puzzle_hint(stage_text_prompt)
+	
 	generate_wheel(current_word)
 	setup_word_slots()
+	
+	if letters_container:
+		letters_container.queue_redraw()
 
-# FIXED: Turned into an async function to allow a delay before starting the next round
 func advance_round() -> void:
 	current_round += 1
 	if current_round <= max_rounds:
 		load_round(current_round)
 	else:
-		# FIXED: Gives a tiny breathing room celebration pause before wiping the scene
-		await get_tree().create_timer(1.0).timeout
 		trigger_victory()
 
 func trigger_victory() -> void:
-	close_minigame()
-
-func extract_unique_letters(pool: Array[String]) -> String:
-	var unique_chars = {}
-	for word in pool:
-		for char in word:
-			unique_chars[char] = true
-			
-	var letter_array = unique_chars.keys()
-	letter_array.shuffle() 
-	return "".join(letter_array)
+	if current_character_id != "":
+		QuestManager.complete_quest(current_character_id)
+		
+	# Instantly cut away to your final victory scene!
+	get_tree().change_scene_to_file("res://Scenes/EndScene.tscn")
 
 func generate_wheel(word: String) -> void:
 	for child in letters_container.get_children():
@@ -117,6 +114,9 @@ func generate_wheel(word: String) -> void:
 	letter_positions.clear()
 	var letter_count = word.length()
 	if letter_count == 0: return
+	
+	if letters_container.get_parent() is Control:
+		letters_container.position = Vector2.ZERO
 	
 	var angle_step = (2 * PI) / letter_count
 	
@@ -137,16 +137,15 @@ func generate_wheel(word: String) -> void:
 		letter_node.add_child(letter_scene)
 		
 		var label = letter_scene.get_node("Label") as Label
-		label.text = word[i]
-		
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		label.position = -label.size / 2.0
+		if label:
+			label.text = word[i]
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			label.position = -label.size / 2.0
 
 func setup_word_slots() -> void:
 	for child in word_slots_container.get_children():
 		child.queue_free()
-		word_slots_container.remove_child(child)
 		
 	for word in word_pool:
 		var slot_label = Label.new()
@@ -218,21 +217,17 @@ func check_letter_detection(local_mouse_pos: Vector2) -> void:
 			break
 
 func _on_letters_container_draw() -> void:
-	# 1. DRAW THE CIRCLE BACKGROUND FIRST (so it renders behind everything else)
 	if draw_wheel_background:
-		# Draws a filled circle centered at (0,0) relative to LettersContainer
 		letters_container.draw_circle(Vector2.ZERO, wheel_background_radius, wheel_background_color)
-		
+
 	if selected_indices.size() == 0:
 		return
 		
-	# 2. Draw permanent snapped paths between confirmed index choices
 	for i in range(selected_indices.size() - 1):
 		var start = letter_positions[selected_indices[i]]
 		var end = letter_positions[selected_indices[i + 1]]
 		letters_container.draw_line(start, end, Color.WHITE, 10.0, true)
 		
-	# 3. Draw active tracking line running from the last snapped center directly to your cursor
 	if is_dragging:
 		var last_letter_center = letter_positions[selected_indices[-1]]
 		letters_container.draw_line(last_letter_center, current_mouse_local, Color.WHITE, 10.0, true)
@@ -243,7 +238,6 @@ func get_selected_string() -> String:
 		result += current_word[idx]
 	return result
 
-# FIXED: Turned into a coroutine via await to handle game round delays seamlessly
 func finish_word_selection() -> void:
 	var final_word = get_selected_string()
 	var round_cleared: bool = false
@@ -272,12 +266,22 @@ func finish_word_selection() -> void:
 	letters_container.queue_redraw()
 
 	if round_cleared:
-		# FIXED: Pause exactly 1 second while the full green text is displayed on the screen
-		await get_tree().create_timer(1.0).timeout
-		advance_round()
+		if active_clear_tween and active_clear_tween.is_valid():
+			active_clear_tween.kill()
+			
+		active_clear_tween = create_tween()
+		active_clear_tween.tween_callback(advance_round).set_delay(0.5)
 
 func close_minigame() -> void:
+	if active_clear_tween and active_clear_tween.is_valid():
+		active_clear_tween.kill()
+		
 	var hub = get_parent()
+	
+	if hub and "active_dialogue_instance" in hub and hub.active_dialogue_instance != null:
+		hub.active_dialogue_instance.close_dialogue()
+		hub.active_dialogue_instance = null
+		
 	if hub and hub.has_method("return_to_overworld"):
 		hub.return_to_overworld()
 	queue_free()

@@ -1,10 +1,11 @@
 [gd_scene format=3 uid="uid://dx875iegd8o6h"]
 
-[ext_resource type="Script" uid="uid://bkqiwoie4swir" path="res://Scenes/dialogue_box.gd" id="1_m4115"]
+[ext_resource type="Script" uid="uid://bkqiwoie4swir" path="res://Scripts/dialogue_box.gd" id="1_m4115"]
 [ext_resource type="FontFile" uid="uid://bu0aveovk3bb3" path="res://Fonts/slkscr.ttf" id="2_mjj0w"]
 [ext_resource type="FontFile" uid="uid://ccmh5dqtphy76" path="res://Fonts/slkscrb.ttf" id="3_in0bf"]
 
 [node name="DialogueBox" type="CanvasLayer" unique_id=1952344507]
+layer = 3
 script = ExtResource("1_m4115")
 
 [node name="TextTimer" type="Timer" parent="." unique_id=370689086]
@@ -17,6 +18,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="NameBox" type="PanelContainer" parent="UIAnchorWrapper" unique_id=1410645742]
+layout_mode = 0
+offset_left = 76.0
+offset_top = 383.0
+offset_right = 141.0
+offset_bottom = 408.0
+
+[node name="NameLabel" type="Label" parent="UIAnchorWrapper/NameBox" unique_id=476930157]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_mjj0w")
+horizontal_alignment = 1
 
 [node name="Panel" type="Panel" parent="UIAnchorWrapper" unique_id=1398445732]
 layout_mode = 1
@@ -36,6 +49,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 6.325012
+offset_right = -3.5
+offset_bottom = -8.675018
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/normal_font = ExtResource("2_mjj0w")

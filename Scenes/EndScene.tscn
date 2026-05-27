@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://8bpruxs0n4hu"]
+
+[ext_resource type="Script" uid="uid://cfr0h84b2tkbq" path="res://Scenes/end_scene.gd" id="1_ryui2"]
+
+[node name="EndScene" type="CanvasLayer" unique_id=716655782]
+script = ExtResource("1_ryui2")
+
+[node name="BackgroundTexture" type="TextureRect" parent="." unique_id=1894090638]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1272781227]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer" unique_id=739335174]
+layout_mode = 2
+
+[node name="WinLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1382928371]
+layout_mode = 2
+text = "SUMMA BLASPHEMIA"
+
+[node name="RestartButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1150045343]
+layout_mode = 2
+text = "Restart Game"

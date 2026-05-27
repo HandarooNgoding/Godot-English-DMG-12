@@ -224,7 +224,7 @@ frame_progress = 0.24611765
 speed_scale = 0.89
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1027770846]
-zoom = Vector2(2.825, 2.825)
+zoom = Vector2(2.24, 2.24)
 limit_left = 100
 limit_top = 50
 limit_right = 700

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://birj55c1u1nyq"]
 
-[ext_resource type="Script" uid="uid://drcbgkloq4laa" path="res://Scenes/new_letter_wheel.gd" id="1_dek30"]
-[ext_resource type="Texture2D" uid="uid://djygxvogw0k7u" path="res://Images/interact_x.png" id="2_s4cja"]
+[ext_resource type="Script" uid="uid://drcbgkloq4laa" path="res://Scripts/new_letter_wheel.gd" id="1_dek30"]
+[ext_resource type="FontFile" uid="uid://bu0aveovk3bb3" path="res://Fonts/slkscr.ttf" id="2_s4cja"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r30hn"]
 bg_color = Color(1, 1, 1, 0)
@@ -38,8 +38,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_behavior_recursive = 1
 
 [node name="WheelInterface" type="Control" parent="." unique_id=1581606951]
+z_index = 3
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -65,12 +67,15 @@ alignment = 1
 
 [node name="RoundLabel" type="Label" parent="WheelInterface" unique_id=1711803380]
 layout_mode = 0
-offset_left = -394.5
-offset_top = -240.0
-offset_right = -354.5
-offset_bottom = -217.0
+offset_left = -385.5
+offset_top = -232.0
+offset_right = -345.5
+offset_bottom = -209.0
+theme_override_fonts/font = ExtResource("2_s4cja")
 
 [node name="ExitButton" type="Button" parent="WheelInterface" unique_id=1496371429]
+visible = false
+z_index = 2
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -92,6 +97,5 @@ theme_override_constants/line_spacing = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_r30hn")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_ibpt3")
 theme_override_styles/hover = SubResource("StyleBoxFlat_s4cja")
-icon = ExtResource("2_s4cja")
 icon_alignment = 1
 expand_icon = true

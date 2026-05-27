@@ -18,6 +18,7 @@ config/icon="res://Images/icon.svg"
 [autoload]
 
 GameManager="*uid://dl56pc3vyiutg"
+QuestManager="*uid://b00pgvfehuuxn"
 
 [display]
 
